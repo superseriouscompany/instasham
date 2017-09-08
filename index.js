@@ -13,15 +13,19 @@ app.get('/', function(req, res) {
 
 app.get('/accounts/login', authorize)
 app.get('/oauth/authorize', redirect)
+app.get('/stub/echo', echo)
 
-function authorize() {
-
+function authorize(req, res) {
+  res.redirect(unescape(req.query.next))
 }
 
-function redirect() {
-
+function redirect(req, res) {
+  res.redirect(req.query.redirect_uri + `?code=CODE&state=${req.query.state}`)
 }
 
+function echo(req, res) {
+  res.json(req.query)
+}
 
 app.use(function(err, req, res, next) {
   console.error({err: err, message: err.message, errName: err.name, stack: err.stack}, 'Uncaught server error');

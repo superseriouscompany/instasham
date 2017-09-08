@@ -22,4 +22,11 @@ describe('api', function() {
       expect(r.body.version).toEqual(1)
     })
   })
+
+  it("redirects properly from login", function () {
+    return api('/accounts/login/?force_classic_login=&next=/oauth/authorize/%3Fclient_id%3DCLIENTID%26redirect_uri%3Dhttp%3A//localhost%3A4200/stub/echo%26response_type%3Dcode%26state%3Dclient.ios').then((r) => {
+      expect(r.body.code).toEqual('CODE')
+      expect(r.body.state).toEqual('client.ios')
+    })
+  });
 })
