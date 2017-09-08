@@ -28,5 +28,24 @@ describe('api', function() {
       expect(r.body.code).toEqual('CODE')
       expect(r.body.state).toEqual('client.ios')
     })
-  });
+  })
+
+  it("allows trading a code for a token", function () {
+    return api({
+      method: 'POST',
+      url: '/oauth/access_token',
+      form: {
+        client_id:    'CLIENTID',
+        grant_type:   'authorization_code',
+        redirect_uri: 'http://localhost:4200/stub/echo',
+        code:         'CODE',
+      }
+    }).then((r) => {
+      expect(r.body.access_token).toEqual('ACCESSTOKEN')
+      expect(r.body.user).toBeTruthy()
+      expect(r.body.user.id).toEqual('ID')
+      expect(r.body.user.username).toEqual('sanchopanza')
+      expect(r.body.user.full_name).toEqual('Sancho Panza')
+    })
+  })
 })
