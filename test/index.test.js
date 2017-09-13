@@ -35,10 +35,11 @@ describe('api', function() {
       method: 'POST',
       url: '/oauth/access_token',
       form: {
-        client_id:    'CLIENTID',
-        grant_type:   'authorization_code',
-        redirect_uri: 'http://localhost:4200/stub/echo',
-        code:         'CODE',
+        client_id:     'CLIENTID',
+        client_secret: 'SECRET',
+        grant_type:    'authorization_code',
+        redirect_uri:  'http://localhost:4200/stub/echo',
+        code:          'CODE',
       }
     }).then((r) => {
       expect(r.body.access_token).toEqual('ACCESSTOKEN')
@@ -48,4 +49,16 @@ describe('api', function() {
       expect(r.body.user.full_name).toEqual('Sancho Panza')
     })
   })
+
+  it("returns image data", function () {
+    return api({
+      method: 'GET',
+      url:    '/v1/users/self/media/recent?access_token=ACCESSTOKEN',
+      json:   true,
+    }).then((r) => {
+      expect(r.body.data.length).toBeGreaterThan(0)
+      const {data} = r.body
+      expect(data[0].images.standard_resolution).toEqual('https://placehold.it/640x640')
+    })
+  });
 })

@@ -5,7 +5,7 @@ const app        = express()
 const port = process.env.PORT || 3000
 
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded())
+app.use(bodyParser.urlencoded({extended: false}))
 app.disable('etag')
 
 app.get('/', function(req, res) {
@@ -16,6 +16,7 @@ app.get('/stub/echo', echo)
 app.get('/accounts/login', authorize)
 app.get('/oauth/authorize', redirect)
 app.post('/oauth/access_token', grantToken)
+app.get('/v1/users/self/media/recent', auth, media)
 
 function authorize(req, res) {
   res.redirect(unescape(req.query.next))
@@ -39,10 +40,41 @@ function grantToken(req, res) {
       full_name: 'Sancho Panza',
     }
   })
+
+  // actual response
+  // {
+  //   access_token: 'REDACTED',
+  //   user:
+  //    { id: '18172731',
+  //      username: 'neilsarkar',
+  //      profile_picture: 'https://scontent.cdninstagram.com/t51.2885-19/s150x150/14334292_605067389680708_387372332_a.jpg',
+  //      full_name: 'Neil Sarkar',
+  //      bio: 'Pretty much just post a photo that\'s primarily water or sky and I will like it.',
+  //      website: 'https://itunes.apple.com/app/apple-store/id1212152764?pt=2012320&ct=ns&mt=8',
+  //      is_business: false
+  //    }
+  //  }
 }
 
 function echo(req, res) {
   res.json(req.query)
+}
+
+function auth(req, res, next) {
+  if( !req.query.access_token ) { return res.status(401).json({error: 'No access token provided'}) }
+  next()
+}
+
+function media(req, res) {
+  res.json({
+    data: [
+      {
+        images: {
+          standard_resolution: 'https://placehold.it/640x640',
+        }
+      }
+    ]
+  })
 }
 
 app.use(function(err, req, res, next) {
