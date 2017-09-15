@@ -13,10 +13,6 @@ This is a very early, feature poor instagram stub server for use in your testing
 const handle  = require('instasham')(4200)
 const request = require('request-promise')
 
-const clientId    = 'anything'
-const redirectUri = 'http://example.com/webhook'
-const state       = 'optional'
-
 request({
   method: 'POST',
   url: 'http://localhost:4200/oauth/access_token',
