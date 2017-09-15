@@ -1,6 +1,6 @@
 {
   "name": "instasham",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Instagram stub server",
   "main": "index.js",
   "scripts": {
@@ -12,8 +12,10 @@
   },
   "keywords": [
     "instagram",
+    "api",
     "stub",
-    "mock"
+    "mock",
+    "server"
   ],
   "author": "Neil Sarkar",
   "license": "MIT",
