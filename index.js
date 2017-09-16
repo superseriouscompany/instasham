@@ -65,14 +65,18 @@ function auth(req, res, next) {
   next()
 }
 
-function media(req, res) {
+function media(req, res, next) {
+  // Reference:
+  // https://www.instagram.com/developer/endpoints/users/#get_users_media_recent_self
+
   res.json({
     data: [
-      {
-        images: {
-          standard_resolution: 'https://placehold.it/640x640',
-        }
-      }
+      makeMedia(),
+      makeMedia(),
+      makeMedia(),
+      makeMedia(),
+      makeMedia(),
+      makeMedia(),
     ]
   })
 }
@@ -94,3 +98,29 @@ if( process.env.NODE_ENV != 'production' && module.parent ) {
 app.listen(port, function() {
   console.log(`Listening on ${port}...`)
 })
+
+function makeMedia(props) {
+  return Object.assign({}, {
+    id:        +new Date + '',
+    comments:  { count: 0 },
+    likes:     { count: 66 },
+    created_time: +new Date + '',
+    images: {
+      standard_resolution: {
+        url: 'https://placehold.it/612x612',
+        width: 612,
+        height: 612,
+      },
+      low_resolution: {
+        url: 'https://placehold.it/306x306',
+        width: 306,
+        height: 306,
+      },
+      thumbnail: {
+        url: 'https://placehold.it/150x150',
+        width: 150,
+        height: 150,
+      }
+    }
+  }, props)
+}
