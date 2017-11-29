@@ -1,6 +1,6 @@
 {
   "name": "instasham",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Instagram stub server",
   "main": "index.js",
   "scripts": {
