@@ -38,6 +38,11 @@ function grantToken(req, res) {
       id:        'ID',
       username:  'sanchopanza',
       full_name: 'Sancho Panza',
+      counts: {
+        follows:     20,
+        followed_by: 400,
+        media:       1000,
+      }
     }
   })
 
@@ -104,7 +109,7 @@ function makeMedia(props) {
     id:        +new Date + '',
     comments:  { count: 0 },
     likes:     { count: 66 },
-    created_time: +new Date + '',
+    created_time: (+new Date / 1000) + '',
     images: {
       standard_resolution: {
         url: 'https://placehold.it/612x612',
