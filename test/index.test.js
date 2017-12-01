@@ -60,5 +60,7 @@ describe('api', function() {
       const {data} = r.body
       expect(data[0].images.standard_resolution).toEqual('https://placehold.it/640x640')
     })
-  });
+  })
+
+  it("allows subscriptions")
 })

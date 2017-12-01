@@ -5,20 +5,26 @@ const app        = express()
 
 const port = process.env.PORT || 3000
 
+const db            = {}
+const subscriptions = []
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 app.disable('etag')
-
-app.get('/', function(req, res) {
-  res.json({version: 1})
-})
-app.get('/stub/echo', echo)
 
 app.get('/accounts/login', authorize)
 app.get('/oauth/authorize', redirect)
 app.post('/oauth/access_token', grantToken)
 app.get('/v1/users/self/media/recent', auth, media)
 app.post('/v1/subscriptions', subscribe)
+app.get('/v1/media/:id', getMedia)
+
+// not real instagram endpoints below this line
+app.get('/', function(req, res) {
+  res.json({version: 1})
+})
+app.get('/stub/echo', echo)
+app.post('/admin/media', postMedia)
 
 function authorize(req, res) {
   res.redirect(unescape(req.query.next))
@@ -26,6 +32,29 @@ function authorize(req, res) {
 
 function redirect(req, res) {
   res.redirect(req.query.redirect_uri + `?code=CODE&state=${req.query.state}`)
+}
+
+function postMedia(req, res) {
+  const photo = makeMedia(req.body)
+  const promises = subscriptions.map((s) => {
+    return request.post(s.callback_url, {
+      body: [
+        {
+          object: 'user',
+          object_id: req.body.object_id,
+          changed_aspect: 'media',
+          time: photo.time,
+          data: { media_id: photo.id },
+          subscription_id: 0,
+        }
+      ],
+      json: true,
+    })
+  })
+
+  return Promise.all(promises).then(() => {
+    res.json(photo)
+  })
 }
 
 function grantToken(req, res) {
@@ -88,6 +117,15 @@ function media(req, res, next) {
   })
 }
 
+function getMedia(req, res, next) {
+  // TODO: look up the actual value
+  if( !db[req.params.id] ) { return errorResponse(res, 400, "PlaceholderError", "Media not found for " + req.params.id)}
+
+  res.json({
+    data: db[req.params.id]
+  })
+}
+
 function subscribe(req, res, next) {
   // TODO: return other error messages by sniffing real instagram traffic
   if( !req.body.client_id ) { return errorResponse(res, 400, "PlaceholderError", "No client_id available") }
@@ -105,6 +143,10 @@ function subscribe(req, res, next) {
     if( response != randomString) {
       return errorResponse(res, 400, 'APISubscriptionError', 'Invalid response')
     }
+
+    subscriptions.push({
+      callback_url: req.body.callback_url
+    })
 
     res.json({
       "data": {
@@ -149,9 +191,10 @@ app.listen(port, function() {
   console.log(`Listening on ${port}...`)
 })
 
-function makeMedia(props) {
-  return Object.assign({}, {
-    id:        +new Date + '',
+function makeMedia(props = {}) {
+  const id = props.id || +new Date + ''
+  db[id] = Object.assign({}, {
+    id:        id,
     comments:  { count: 0 },
     likes:     { count: 66 },
     created_time: (+new Date / 1000) + '',
@@ -173,4 +216,5 @@ function makeMedia(props) {
       }
     }
   }, props)
+  return db[id]
 }
