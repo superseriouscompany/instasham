@@ -1,5 +1,6 @@
 const express    = require('express')
 const bodyParser = require('body-parser')
+const request    = require('request-promise')
 const app        = express()
 
 const port = process.env.PORT || 3000
@@ -17,6 +18,7 @@ app.get('/accounts/login', authorize)
 app.get('/oauth/authorize', redirect)
 app.post('/oauth/access_token', grantToken)
 app.get('/v1/users/self/media/recent', auth, media)
+app.post('/v1/subscriptions', subscribe)
 
 function authorize(req, res) {
   res.redirect(unescape(req.query.next))
@@ -83,6 +85,49 @@ function media(req, res, next) {
       makeMedia(),
       makeMedia(),
     ]
+  })
+}
+
+function subscribe(req, res, next) {
+  // TODO: return other error messages by sniffing real instagram traffic
+  if( !req.body.client_id ) { return errorResponse(res, 400, "PlaceholderError", "No client_id available") }
+  if( !req.body.client_secret ) { return errorResponse(res, 400, "PlaceholderError", "No client_secret available") }
+  if( !req.body.callback_url ) { return errorResponse(res, 400, "PlaceholderError", "No callback_url available") }
+
+  const randomString = Math.random().toString(36).substring(7)
+  return request.get(req.body.callback_url, {
+    qs: {
+      'hub.mode': 'subscribe',
+      'hub.challenge': randomString,
+      'hub.verify_token': req.body.verify_token
+    }
+  }).then((response) => {
+    if( response != randomString) {
+      return errorResponse(res, 400, 'APISubscriptionError', 'Invalid response')
+    }
+
+    res.json({
+      "data": {
+        "id": 0,
+        "type": "subscription",
+        "object": "user",
+        "object_id": null,
+        "aspect": "media",
+        "subscription_id": 0,
+        "callback_url": req.body.callback_url
+      },
+      "meta": {"code": 200}
+    })
+  }).catch(next)
+}
+
+function errorResponse(res, status, type, message) {
+  res.status(status).json({
+    meta: {
+      code: status,
+      error_type: type || 'APISubscriptionError',
+      error_message: message,
+    }
   })
 }
 
